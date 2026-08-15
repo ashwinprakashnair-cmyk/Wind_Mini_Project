@@ -17,8 +17,8 @@
 
 ## 🛠️ Concepts Used
 
-- **Arrays:** Store daily power generation data across fixed wind turbines.
-- **Linked Lists:** Append and maintain sequential maintenance and diagnostic event logs.
+- **Arrays:** 
+- **Linked Lists:** 
 
 ---
 
