@@ -1,4 +1,3 @@
-# Data Structures Mini Project
 
 <div align="center" style="background: linear-gradient(135deg, #0e7490, #15803d); color: white; padding: 24px; border-radius: 10px; margin-bottom: 20px;">
   <h1 style="margin: 0; border: none; color: white;">Data Structures Mini Project</h1>
