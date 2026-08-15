@@ -1,4 +1,0 @@
-*Data Structures Mini Project :
-*Domain : Green Energy
-*Subdomain : Wind Energy
-*Languages used : C++, HTML, CSS
