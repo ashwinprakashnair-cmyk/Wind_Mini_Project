@@ -2,7 +2,7 @@
 
 <div align="center" style="background: linear-gradient(135deg, #0e7490, #15803d); color: white; padding: 24px; border-radius: 10px; margin-bottom: 20px;">
   <h1 style="margin: 0; border: none; color: white;">Data Structures Mini Project</h1>
-  <p style="margin-top: 8px; opacity: 0.9; font-size: 1.1em;">Green Energy & Wind Subdomain</p>
+  <p style="margin-top: 8px; opacity: 0.9; font-size: 1.1em;">A Two-Group Project</p>
 </div>
 
 ## 📋 Project Details
