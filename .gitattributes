@@ -4,3 +4,6 @@
 *.jsx linguist-detectable=true
 *.ts linguist-detectable=true
 *.tsx linguist-detectable=true
+
+# Auto detect text files and perform LF normalization
+* text=auto
