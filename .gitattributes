@@ -7,3 +7,41 @@
 
 # Auto detect text files and perform LF normalization
 * text=auto
+
+
+# C++ Source and Header Files
+*.cpp text eol=lf
+*.hpp text eol=lf
+*.cc  text eol=lf
+*.hh  text eol=lf
+*.cxx text eol=lf
+*.hxx text eol=lf
+*.c   text eol=lf
+*.h   text eol=lf
+*.ipp text eol=lf
+*.tpp text eol=lf
+
+# Build and Configuration
+CMakeLists.txt text eol=lf
+*.cmake        text eol=lf
+
+# Windows/Visual Studio Build Files
+*.sln        text eol=crlf
+*.vcxproj    text eol=crlf
+*.filters    text eol=crlf
+
+# Compiled Binaries and Libraries
+*.exe   binary
+*.dll   binary
+*.so    binary
+*.dylib binary
+*.a     binary
+*.lib   binary
+
+# Object Files and Compilation Artifacts
+*.o     binary
+*.obj   binary
+*.pch   binary
+*.gch   binary
+*.tlb   binary
+
