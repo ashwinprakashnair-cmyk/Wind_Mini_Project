@@ -118,7 +118,7 @@
   <tr>
     <td><code>yaw_offset</code></td>
     <td>Degrees (°) / Float</td>
-    <td>Static or dynamic misalignment angle of the turbine nacelle</td>
+    <td>Static or dynamic misalignment angle of the turbine nacelle (fixed at 0° in this synthetic dataset — static-offset configuration only)</td>
   </tr>
 </table>
 
@@ -141,6 +141,44 @@
   <tr><td align="center">11</td><td>High wind shutdown</td></tr>
   <tr><td align="center">12</td><td>Shut down</td></tr>
   <tr><td align="center">13</td><td>Alarm / fault condition</td></tr>
+</table>
+
+<hr>
+
+<h2>Synthetic Data Generation Ranges</h2>
+<p>
+  Each status code drives a distinct sensor behavior profile. The synthetic generator samples values within the following per-status ranges, chosen to reflect realistic turbine behavior at each operating state:
+</p>
+
+<table>
+  <tr>
+    <th>Code</th><th>Status</th><th>Rotor Speed (RPM)</th><th>Generator Speed (RPM)</th><th>Gen. Temp (°C)</th><th>Wind Speed (m/s)</th><th>Power Output (kW)</th><th>Blade Pitch (°)</th>
+  </tr>
+  <tr><td align="center">0</td><td>Initialize system</td><td>0–1</td><td>0–5</td><td>5–8</td><td>0–3</td><td>0</td><td>35–38</td></tr>
+  <tr><td align="center">1</td><td>Feathered position search 1</td><td>0–2</td><td>0–10</td><td>5–8</td><td>0–3</td><td>0</td><td>30–40</td></tr>
+  <tr><td align="center">2</td><td>Feathered position search 2</td><td>0–3</td><td>0–15</td><td>5–8</td><td>0–3</td><td>0</td><td>25–35</td></tr>
+  <tr><td align="center">3</td><td>Feathered position 1</td><td>0–2</td><td>0–10</td><td>5–8</td><td>0–3</td><td>0</td><td>35–38</td></tr>
+  <tr><td align="center">4</td><td>Function test 1</td><td>1–5</td><td>5–30</td><td>6–9</td><td>0–3</td><td>0–0.1</td><td>20–30</td></tr>
+  <tr><td align="center">5</td><td>Function test 2</td><td>1–6</td><td>5–35</td><td>6–9</td><td>0–3</td><td>0–0.1</td><td>20–30</td></tr>
+  <tr><td align="center">6</td><td>Feathered position 2</td><td>0–2</td><td>0–10</td><td>6–9</td><td>0–3</td><td>0</td><td>35–38</td></tr>
+  <tr><td align="center">7</td><td>Standby position 1</td><td>2–12</td><td>50–180</td><td>6–10</td><td>1–4</td><td>0–0.05</td><td>14–20</td></tr>
+  <tr><td align="center">8</td><td>Standby position 2</td><td>6–17</td><td>80–250</td><td>6–10</td><td>1–4</td><td>0–0.1</td><td>14–18</td></tr>
+  <tr><td align="center">9</td><td>Standby position 3</td><td>2–19</td><td>50–260</td><td>6–10</td><td>1–5</td><td>0–0.1</td><td>14–18</td></tr>
+  <tr><td align="center">10</td><td>Power operation</td><td>7–70</td><td>260–900</td><td>20–32</td><td>3–12</td><td>0.5–6.2</td><td>0–14</td></tr>
+  <tr><td align="center">11</td><td>High wind shutdown</td><td>20–40</td><td>300–600</td><td>22–30</td><td>12–20</td><td>1.0–3.0</td><td>60–85</td></tr>
+  <tr><td align="center">12</td><td>Shut down</td><td>15–25</td><td>100–300</td><td>18–25</td><td>3–10</td><td>0–0.3</td><td>30–37</td></tr>
+  <tr><td align="center">13</td><td>Alarm / fault condition</td><td>7–25</td><td>80–300</td><td>15–28</td><td>2–9</td><td>0</td><td>20–40</td></tr>
+</table>
+
+<p>
+  The remaining parameters are generated independently of status code:
+</p>
+
+<table>
+  <tr><th>Column</th><th>Generation Method</th></tr>
+  <tr><td><code>relative_wind_direction</code></td><td>Random integer, -30° to 30°</td></tr>
+  <tr><td><code>supply_voltage</code></td><td>Random float, 27.5–27.9 V</td></tr>
+  <tr><td><code>yaw_offset</code></td><td>Fixed at 0° (this synthetic dataset models the static-offset configuration only)</td></tr>
 </table>
 
 <hr>
