@@ -115,8 +115,11 @@
     <td>Integer (0–13)</td>
     <td>Current operating state code (see status mapping table below)</td>
   </tr>
-  <tr><td><code>yaw_offset</code></td>
-    <td>Fixed at 0° — matches the static yaw offset configuration of the reference Aventa AV-7 dataset</td></tr>
+  <tr>
+  <td><code>yaw_offset</code></td>
+  <td>Degrees (°) / Float</td>
+  <td>Static or dynamic misalignment angle of the turbine nacelle (fixed at 0° in this synthetic dataset, matching the static yaw offset configuration of the reference Aventa AV-7 dataset)</td>
+</tr>
 </table>
 
 <hr>
@@ -124,7 +127,7 @@
 <h2>Turbine Status Codes</h2>
 <table>
   <tr><th>Code</th><th>Meaning</th></tr>
-  <tr><td align="center">0</td><td>Initialize system</td></tr>
+  <tr><td align="center">0</td><td>nitialize system</td></tr>
   <tr><td align="center">1</td><td>Feathered position search 1</td></tr>
   <tr><td align="center">2</td><td>Feathered position search 2</td></tr>
   <tr><td align="center">3</td><td>Feathered position 1</td></tr>
@@ -175,7 +178,10 @@
   <tr><th>Column</th><th>Generation Method</th></tr>
   <tr><td><code>relative_wind_direction</code></td><td>Random integer, -30° to 30°</td></tr>
   <tr><td><code>supply_voltage</code></td><td>Random float, 27.5–27.9 V</td></tr>
-  <tr><td><code>yaw_offset</code></td><td>Fixed at 0° (this synthetic dataset models the static-offset configuration only)</td></tr>
+  <tr>
+  <td><code>yaw_offset</code></td>
+  <td>Fixed at 0° — matches the static yaw offset configuration of the reference Aventa AV-7 dataset</td>
+</tr>
 </table>
 
 <hr>
