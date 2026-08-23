@@ -115,11 +115,8 @@
     <td>Integer (0–13)</td>
     <td>Current operating state code (see status mapping table below)</td>
   </tr>
-  <tr>
-    <td><code>yaw_offset</code></td>
-    <td>Degrees (°) / Float</td>
-    <td>Static or dynamic misalignment angle of the turbine nacelle (fixed at 0° in this synthetic dataset — static-offset configuration only)</td>
-  </tr>
+  <tr><td><code>yaw_offset</code></td>
+    <td>Fixed at 0° — matches the static yaw offset configuration of the reference Aventa AV-7 dataset</td></tr>
 </table>
 
 <hr>
