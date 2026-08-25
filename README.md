@@ -38,12 +38,12 @@
   <tr>
     <td><code>v2_final_cleaned.csv</code></td>
     <th>Processed / Evaluated</th>
-    <td>Full 5,400-record dataset evaluated for aerodynamic consistency, capacity factors, and gear ratios</td>
+    <td>Full 5,400-record active production dataset evaluated for aerodynamic consistency, capacity factors, and gear ratios</td>
   </tr>
   <tr>
     <td><code>mock_turbine_dataset.csv</code></td>
     <td>Synthetic Reference</td>
-    <td>Generated baseline data covering all 14 turbine operating states</td>
+    <td>Generated baseline dataset covering all 14 turbine operating state definitions (Codes 0–13)</td>
   </tr>
 </table>
 
@@ -67,7 +67,7 @@
 
 <h2>Dataset Accuracy & Physical Proofs</h2>
 <p>
-  The primary dataset (<code>v2_final_cleaned.csv</code>) was rigorously evaluated against classical wind energy formulas. Across 5,400 records, the dataset achieved an overall <b>99.98% accuracy score</b>.
+  The primary evaluation dataset (<code>v2_final_cleaned.csv</code>) was rigorously evaluated against classical wind energy formulas. Across 5,400 records, the dataset achieved an overall <b>99.98% accuracy score</b>.
 </p>
 
 <table>
@@ -104,7 +104,7 @@
   <tr>
     <td><b>Blade Pitch Control</b></td>
     <td>Active pitch pitching at $v \ge 6.0\text{ m/s}$</td>
-    <td>Output successfully capped at $\sim 7.06\text{ kW}$ in high winds</td>
+    <td>Output successfully capped at $\sim 7.06\text{ kW}$ in high winds ($0^\circ - 14^\circ$)</td>
     <td><font color="green"><b>Passed</b> (Proper power regulation)</font></td>
   </tr>
   <tr>
@@ -216,17 +216,17 @@
   <tr><td align="center">7</td><td>Standby position 1</td></tr>
   <tr><td align="center">8</td><td>Standby position 2</td></tr>
   <tr><td align="center">9</td><td>Standby position 3</td></tr>
-  <tr><td align="center">10</td><td>Power operation</td></tr>
-  <tr><td align="center">11</td><td>High wind shutdown</td></tr>
-  <tr><td align="center">12</td><td>Shut down</td></tr>
+  <tr><td align="center">10</td><td>Power operation (production mode; active generation)</td></tr>
+  <tr><td align="center">11</td><td>High wind shutdown (feather to ~80°; auto-resume when winds subside)</td></tr>
+  <tr><td align="center">12</td><td>Shut down (speed &lt; 25 rpm → return to ~37° standby pitch)</td></tr>
   <tr><td align="center">13</td><td>Alarm / fault condition</td></tr>
 </table>
 
 <hr>
 
-<h2>Synthetic Data Generation Ranges</h2>
+<h2>Synthetic Data Generation & Evaluation Ranges</h2>
 <p>
-  Each status code drives a distinct sensor behavior profile. The synthetic generator samples values within the following per-status ranges, chosen to reflect realistic turbine behavior at each operating state:
+  The synthetic generator models discrete operational bounds across all 14 turbine status codes (as stored in <code>mock_turbine_dataset.csv</code>). The core evaluation telemetry dataset (<code>v2_final_cleaned.csv</code>) represents a high-wind production run operating under <b>Status Code 10 (Power Operation)</b> across wind speeds from <b>3.0 to 12.0 m/s</b>.
 </p>
 
 <table>
@@ -243,24 +243,24 @@
   <tr><td align="center">7</td><td>Standby position 1</td><td>2–12</td><td>50–180</td><td>6–10</td><td>1–4</td><td>0–0.05</td><td>14–20</td></tr>
   <tr><td align="center">8</td><td>Standby position 2</td><td>6–17</td><td>80–250</td><td>6–10</td><td>1–4</td><td>0–0.1</td><td>14–18</td></tr>
   <tr><td align="center">9</td><td>Standby position 3</td><td>2–19</td><td>50–260</td><td>6–10</td><td>1–5</td><td>0–0.1</td><td>14–18</td></tr>
-  <tr><td align="center">10</td><td>Power operation</td><td>7–70</td><td>260–900</td><td>20–32</td><td>3–12</td><td>0.5–6.2</td><td>0–14</td></tr>
-  <tr><td align="center">11</td><td>High wind shutdown</td><td>20–40</td><td>300–600</td><td>22–30</td><td>12–20</td><td>1.0–3.0</td><td>60–85</td></tr>
+  <tr><td align="center"><b>10</b></td><td><b>Power operation (v2_final_cleaned)</b></td><td><b>29.8–70.8</b></td><td><b>355.1–852.5</b></td><td><b>7.3–33.0</b></td><td><b>3.0–12.0</b></td><td><b>0.0–7.06</b></td><td><b>0–14</b></td></tr>
+  <tr><td align="center">11</td><td>High wind shutdown</td><td>20–40</td><td>300–600</td><td>22–30</td><td>12–25</td><td>1.0–3.0</td><td>60–85</td></tr>
   <tr><td align="center">12</td><td>Shut down</td><td>15–25</td><td>100–300</td><td>18–25</td><td>3–10</td><td>0–0.3</td><td>30–37</td></tr>
   <tr><td align="center">13</td><td>Alarm / fault condition</td><td>7–25</td><td>80–300</td><td>15–28</td><td>2–9</td><td>0</td><td>20–40</td></tr>
 </table>
 
 <p>
-  The remaining parameters are generated independently of status code:
+  The remaining telemetry channels are configured across the following bounds:
 </p>
 
 <table>
-  <tr><th>Column</th><th>Generation Method</th></tr>
+  <tr><th>Column</th><th>Generation / Sample Range</th></tr>
   <tr><td><code>relative_wind_direction</code></td><td>Random integer, -30° to 30°</td></tr>
   <tr><td><code>supply_voltage</code></td><td>Random float, 27.5–27.9 V</td></tr>
   <tr>
-  <td><code>yaw_offset</code></td>
-  <td>Fixed at 0° — matches the static yaw offset configuration of the reference Aventa AV-7 dataset</td>
-</tr>
+    <td><code>yaw_offset</code></td>
+    <td>Fixed at 0° — matches static yaw offset configuration of reference Aventa AV-7 dataset</td>
+  </tr>
 </table>
 
 <hr>
