@@ -1,7 +1,6 @@
-
 <div align="center">
   <h1>Urban Small Wind Turbine SCADA Data Analysis</h1>
-  <h3>using C++ (Arrays &amp; Linked Lists)</h3>
+  <h3>using C++ (Arrays & Linked Lists)</h3>
   <p>
     A college mini-project for processing real turbine sensor telemetry — detecting faults, monitoring turbine conditions, verifying physical electrical/aerodynamic behavior, and performing basic forecasting.
   </p>
@@ -44,7 +43,7 @@
 </table>
 
 <blockquote>
-  <b>Note:</b> This project uses real, published SCADA data — not a synthetic approximation. The full source dataset spans January–December 2022 (369,731 records); August was selected as a representative one-month subset with the widest variety of operational status codes (10 distinct combinations).
+  <b>Note:</b> This project uses real, published SCADA data — not a synthetic approximation. The full source dataset spans January–December 2022 (369,731 records); August was selected as a representative one-month subset with the widest variety of operational status codes (19 distinct combinations: 10 Turbine status + 3 Grid status + 6 System status values — more than any other month).
 </blockquote>
 
 <p>
@@ -75,32 +74,32 @@
   </tr>
   <tr>
     <td><b>Electrical Power Law</b></td>
-    <td>$\text{Power out} \approx (\text{Voltage L1} + \text{Voltage L2}) \times \text{Current out}$</td>
-    <td>Implied voltage $= 220.65\text{ V} \pm 4.7\text{ V}$ (for rows with $\ge 200\text{ W}$ output) — stable and physically consistent. Ratio is unstable below 200 W due to division by small currents, not a data defect.</td>
+    <td>Power out ≈ (Voltage L1 + Voltage L2) × Current out</td>
+    <td>Implied voltage = 220.65 V ± 4.7 V (for rows with ≥ 200 W output) — stable and physically consistent. Ratio is unstable below 200 W due to division by small currents, not a data defect.</td>
     <td><font color="green"><b>Passed</b> (verified at meaningful output)</font></td>
   </tr>
   <tr>
     <td><b>Inverter Efficiency</b></td>
-    <td>$\text{Power reg} / \text{Power out}$</td>
-    <td>Mean $= 1.0054$ ($\pm 0.016$) for $\ge 200\text{ W}$ rows — near-lossless conversion, consistent with a well-tuned grid-tied inverter</td>
+    <td>Power reg / Power out</td>
+    <td>Mean = 1.0054 (± 0.016) for ≥ 200 W rows — near-lossless conversion, consistent with a well-tuned grid-tied inverter</td>
     <td><font color="green"><b>Passed</b></font></td>
   </tr>
   <tr>
     <td><b>Betz's Limit Compliance</b></td>
-    <td>$C_p = \frac{P_{\text{actual}}}{\frac{1}{2}\rho A v^3} \le 0.593$</td>
-    <td>4 of 17,762 non-zero-wind records ($0.023\%$) marginally exceed Betz limit ($C_p$ up to 0.692), all at low integer wind-speed readings (3–4 m/s) where the dataset's integer-only wind speed resolution amplifies error via the $v^3$ term</td>
+    <td>Cp = P_actual / (½ρAv³) ≤ 0.593</td>
+    <td>4 of 17,762 non-zero-wind records (0.023%) marginally exceed Betz limit (Cp up to 0.692), all at low integer wind-speed readings (3–4 m/s) where the dataset's integer-only wind speed resolution amplifies error via the v³ term</td>
     <td><font color="orange"><b>99.98% Passed</b> (explained by wind-speed measurement resolution, not a physics violation)</font></td>
   </tr>
   <tr>
     <td><b>Cut-In Speed Behavior</b></td>
-    <td>Generation requires $v \ge 3.0\text{ m/s}$</td>
+    <td>Generation requires v ≥ 3.0 m/s</td>
     <td>179 records show trace output below 3 m/s (max 107 W); all occur near the 3 m/s boundary and are consistent with rotor inertia carrying over between 1-minute samples, not ghost generation</td>
     <td><font color="green"><b>Passed</b> (physically explainable)</font></td>
   </tr>
   <tr>
     <td><b>Idle Coasting Behavior</b></td>
-    <td>$\text{RPM} > 0$ while $\text{Windspeed} = 0$</td>
-    <td>510 records, all with RPM 5–17 (near-idle) and Power out $= 0$ — consistent with the rotor freewheeling to a stop in still air rather than a sensor fault</td>
+    <td>RPM &gt; 0 while Windspeed = 0</td>
+    <td>510 records, all with RPM 5–17 (near-idle) and Power out = 0 — consistent with the rotor freewheeling to a stop in still air rather than a sensor fault</td>
     <td><font color="green"><b>Passed</b> (physically explainable)</font></td>
   </tr>
   <tr>
@@ -112,10 +111,27 @@
   <tr>
     <td><b>Known Data Corruption (pre-cleaning)</b></td>
     <td>Physically impossible sensor values</td>
-    <td>4 rows removed from the raw 35,907-row August extract: 2 with corrupted <code>Turbine status</code> (value 33063, an implausible bitmask) and 2 with <code>Power max = 0</code> (sensor init/calibration artifacts)</td>
+    <td>4 rows removed from the raw 35,907-row August extract: 2 with corrupted Turbine status (value 33063, an implausible bitmask) and 2 with Power max = 0 (sensor init/calibration artifacts)</td>
     <td><font color="green"><b>Cleaned</b> (0.011% of rows removed)</font></td>
   </tr>
 </table>
+
+<hr>
+
+<h2>Plain-Language Glossary</h2>
+<p>For anyone in the room unfamiliar with the terms above:</p>
+<ul>
+  <li><b>Betz's Limit</b> — a hard physics ceiling: no wind turbine can ever convert more than 59.3% of the wind's energy into electricity, regardless of design.</li>
+  <li><b>Cp (power coefficient)</b> — the turbine's real-time efficiency score: actual power produced ÷ max power theoretically available in that wind.</li>
+  <li><b>Swept area</b> — the circular area the spinning blades cover (π × radius²); bigger blades capture more wind.</li>
+  <li><b>Cut-in speed</b> — the minimum wind speed before the turbine generates any power at all.</li>
+  <li><b>Freewheeling / coasting</b> — the rotor still spinning briefly from leftover momentum after wind drops, like a bike wheel spinning after you stop pedaling.</li>
+  <li><b>L1 / L2 (phases)</b> — the two AC lines that together deliver grid power in this split-phase setup.</li>
+  <li><b>Inverter</b> — the device that converts the turbine's raw DC output into clean AC power usable by the grid.</li>
+  <li><b>Inverter efficiency ratio</b> — Power reg ÷ Power out; close to 1 means almost no energy is lost during conversion.</li>
+  <li><b>Bitmask</b> — a way of packing multiple independent flags into one number using powers of 2 (1, 2, 4, 8, 16...), added together when several conditions are true at once. E.g. 33 = 32 + 1 = two conditions happening simultaneously.</li>
+  <li><b>Correlation</b> — a number from -1 to 1 showing how tightly two variables move together; 0.997 means near-total lockstep, not coincidence.</li>
+</ul>
 
 <hr>
 
@@ -131,134 +147,94 @@
     <th>Observed Range</th>
     <th>Description</th>
   </tr>
-  <tr>
-    <td><code>Log Time</code></td>
-    <td>YYYY:MM:DD:HH:MM:SS,ms</td>
-    <td>2022-08-01 to 2022-08-31</td>
-    <td>Timestamp of the recorded telemetry reading</td>
-  </tr>
-  <tr>
-    <td><code>Windspeed (ref)</code></td>
-    <td>m/s / Integer</td>
-    <td><b>0 – 10</b></td>
-    <td>Estimated reference wind speed, calculated from rotor rotation (integer resolution)</td>
-  </tr>
-  <tr>
-    <td><code>RPM</code></td>
-    <td>RPM / Integer</td>
-    <td><b>0 – 327</b></td>
-    <td>Rotational speed of the wind turbine blades</td>
-  </tr>
-  <tr>
-    <td><code>Voltage In</code></td>
-    <td>V / Float</td>
-    <td><b>0.0 – 289.6</b></td>
-    <td>DC voltage generated by the turbine rotor; correlates 0.997 with RPM (physical, not anomalous)</td>
-  </tr>
-  <tr>
-    <td><code>Voltage L1</code></td>
-    <td>V / Float</td>
-    <td><b>125.4 – 135.1</b></td>
-    <td>Grid AC voltage, phase L1</td>
-  </tr>
-  <tr>
-    <td><code>Voltage L2</code></td>
-    <td>V / Float</td>
-    <td><b>126.9 – 138.4</b></td>
-    <td>Grid AC voltage, phase L2</td>
-  </tr>
-  <tr>
-    <td><code>Current out</code></td>
-    <td>A / Float</td>
-    <td><b>0.02 – 8.47</b></td>
-    <td>Total AC output current delivered to the grid</td>
-  </tr>
-  <tr>
-    <td><code>Power out</code></td>
-    <td>W / Integer</td>
-    <td><b>0 – 1,927</b></td>
-    <td>Total AC active power delivered to the grid</td>
-  </tr>
-  <tr>
-    <td><code>Power reg</code></td>
-    <td>W / Integer</td>
-    <td><b>0 – 1,910</b></td>
-    <td>Gross power from the generator before inverter losses</td>
-  </tr>
-  <tr>
-    <td><code>T1</code></td>
-    <td>°C / Float</td>
-    <td><b>10.3 – 37.6</b></td>
-    <td>Inverter heatsink temperature 1</td>
-  </tr>
-  <tr>
-    <td><code>T2</code></td>
-    <td>°C / Float</td>
-    <td><b>10.1 – 37.8</b></td>
-    <td>Inverter heatsink temperature 2</td>
-  </tr>
-  <tr>
-    <td><code>T3</code></td>
-    <td>°C / Float</td>
-    <td><b>8.1 – 35.0</b></td>
-    <td>Ambient temperature inside the nacelle housing</td>
-  </tr>
-  <tr>
-    <td><code>Event count</code></td>
-    <td>Integer</td>
-    <td><b>13,228 – 13,500</b></td>
-    <td>Cumulative count of SCADA system events (genuinely incrementing, unlike a static placeholder)</td>
-  </tr>
-  <tr>
-    <td><code>Last event code</code></td>
-    <td>Integer</td>
-    <td><b>6 – 111</b></td>
-    <td>Numeric identifier of the most recent logged event code</td>
-  </tr>
-  <tr>
-    <td><code>Turbine status</code></td>
-    <td>Bitmask / Integer</td>
-    <td>10 distinct values (see table below)</td>
-    <td>Bitmask of active turbine operational/mechanical states</td>
-  </tr>
-  <tr>
-    <td><code>Grid status</code></td>
-    <td>Bitmask / Integer</td>
-    <td><code>0</code>, <code>4096</code>, <code>5120</code></td>
-    <td>Bitmask of grid connection health and fault conditions</td>
-  </tr>
-  <tr>
-    <td><code>System status</code></td>
-    <td>Bitmask / Integer</td>
-    <td>6 distinct values</td>
-    <td>Bitmask of high-level system operational states</td>
-  </tr>
+  <tr><td><code>Log Time</code></td><td>YYYY:MM:DD:HH:MM:SS,ms</td><td>2022-08-01 to 2022-08-31</td><td>Timestamp of the recorded telemetry reading</td></tr>
+  <tr><td><code>Windspeed (ref)</code></td><td>m/s / Integer</td><td><b>0 – 10</b></td><td>Estimated reference wind speed, calculated from rotor rotation (integer resolution)</td></tr>
+  <tr><td><code>RPM</code></td><td>RPM / Integer</td><td><b>0 – 327</b></td><td>Rotational speed of the wind turbine blades</td></tr>
+  <tr><td><code>Voltage In</code></td><td>V / Float</td><td><b>0.0 – 289.6</b></td><td>DC voltage generated by the turbine rotor; correlates 0.997 with RPM (physical, not anomalous)</td></tr>
+  <tr><td><code>Voltage L1</code></td><td>V / Float</td><td><b>125.4 – 135.1</b></td><td>Grid AC voltage, phase L1</td></tr>
+  <tr><td><code>Voltage L2</code></td><td>V / Float</td><td><b>126.9 – 138.4</b></td><td>Grid AC voltage, phase L2</td></tr>
+  <tr><td><code>Current out</code></td><td>A / Float</td><td><b>0.02 – 8.47</b></td><td>Total AC output current delivered to the grid</td></tr>
+  <tr><td><code>Power out</code></td><td>W / Integer</td><td><b>0 – 1,927</b></td><td>Total AC active power delivered to the grid</td></tr>
+  <tr><td><code>Power reg</code></td><td>W / Integer</td><td><b>0 – 1,910</b></td><td>Gross power from the generator before inverter losses</td></tr>
+  <tr><td><code>T1</code></td><td>°C / Float</td><td><b>10.3 – 37.6</b></td><td>Inverter heatsink temperature 1</td></tr>
+  <tr><td><code>T2</code></td><td>°C / Float</td><td><b>10.1 – 37.8</b></td><td>Inverter heatsink temperature 2</td></tr>
+  <tr><td><code>T3</code></td><td>°C / Float</td><td><b>8.1 – 35.0</b></td><td>Ambient temperature inside the nacelle housing</td></tr>
+  <tr><td><code>Event count</code></td><td>Integer</td><td><b>13,228 – 13,500</b></td><td>Cumulative count of SCADA system events (genuinely incrementing, unlike a static placeholder)</td></tr>
+  <tr><td><code>Last event code</code></td><td>Integer</td><td><b>6 – 111</b></td><td>Numeric identifier of the most recent logged event code</td></tr>
+  <tr><td><code>Turbine status</code></td><td>Bitmask / Integer</td><td>10 distinct values observed</td><td>Bitmask of active turbine operational/mechanical states</td></tr>
+  <tr><td><code>Grid status</code></td><td>Bitmask / Integer</td><td>3 distinct values observed: 0, 4096, 5120</td><td>Bitmask of grid connection health and fault conditions</td></tr>
+  <tr><td><code>System status</code></td><td>Bitmask / Integer</td><td>6 distinct values observed</td><td>Bitmask of high-level system operational states</td></tr>
 </table>
 
 <hr>
 
 <h2>Status Code Reference (Bitwise Logic)</h2>
 <p>
-  Status columns are bitmasks — individual bits represent independent conditions, and codes can combine additively when multiple conditions occur simultaneously (e.g. <code>Turbine status = 33</code> = Anemometer mode (32) + Low Windspeed (1)).
+  Status columns are bitmasks — each individual bit (1, 2, 4, 8, 16, 32...) represents one independent condition, and codes combine additively when multiple conditions occur at once
+  (e.g. <code>Turbine status = 33</code> = Anemometer mode (32) + Low Windspeed (1)).
 </p>
 
+<h3>Full bit reference (individual flags)</h3>
+
 <table>
-  <tr>
-    <th>Numeric Code</th>
-    <th>Turbine Status</th>
-    <th>Grid Status</th>
-    <th>System Status</th>
-  </tr>
-  <tr><td>0</td><td>Normal Run / Power Generation</td><td>Normal (no faults)</td><td>Normal (no errors)</td></tr>
-  <tr><td>1</td><td>Low Windspeed (below cut-in)</td><td>L1 Low Voltage</td><td>HS Backoff</td></tr>
-  <tr><td>8</td><td>No Stall (high-efficiency operation)</td><td>L2 High Voltage</td><td>Battery Timeout</td></tr>
-  <tr><td>32</td><td>Anemometer mode</td><td>Phase Error</td><td>Slave Shutdown</td></tr>
-  <tr><td>256</td><td>Power High</td><td>DPLL Unlock</td><td>Run (Normal Operation)</td></tr>
-  <tr><td>1024</td><td>Quiet</td><td>Anti-Islanding</td><td>Waiting</td></tr>
+<tr><th colspan="2">Turbine Status</th><th colspan="2">Grid Status</th><th colspan="2">System Status</th></tr>
+<tr><th>Bit</th><th>Meaning</th><th>Bit</th><th>Meaning</th><th>Bit</th><th>Meaning</th></tr>
+<tr><td>0</td><td>Normal Run / Power Generation</td><td>0</td><td>Normal (no faults)</td><td>0</td><td>Normal (no errors)</td></tr>
+<tr><td>1</td><td>Low Windspeed</td><td>1</td><td>L1 Low Voltage</td><td>1</td><td>HS Backoff</td></tr>
+<tr><td>2</td><td>Braking</td><td>2</td><td>L1 High Voltage</td><td>2</td><td>SIP TX Too Long</td></tr>
+<tr><td>4</td><td>Overspeed</td><td>4</td><td>L2 Low Voltage</td><td>4</td><td>Improper Reset</td></tr>
+<tr><td>8</td><td>No Stall (normal high-efficiency operation)</td><td>8</td><td>L2 High Voltage</td><td>8</td><td>Battery Timeout</td></tr>
+<tr><td>16</td><td>High Wind Test</td><td>16</td><td>Offset Limit</td><td>16</td><td>Drive Off</td></tr>
+<tr><td>32</td><td>Anemometer mode</td><td>32</td><td>Phase Error</td><td>32</td><td>Slave Shutdown</td></tr>
+<tr><td>64</td><td>Ramp</td><td>64</td><td>Frequency Low</td><td>64</td><td>Temp Shutdown</td></tr>
+<tr><td>128</td><td>TSR Incr</td><td>128</td><td>Frequency High</td><td>128</td><td>High Temp</td></tr>
+<tr><td>256</td><td>Power High</td><td>256</td><td>DPLL Unlock</td><td>256</td><td>Run (Normal Operation)</td></tr>
+<tr><td>512</td><td>TSR Limit</td><td>512</td><td>Grid Disconnect</td><td>512</td><td>Disabled</td></tr>
+<tr><td>1024</td><td>Quiet</td><td>1024</td><td>Anti-Islanding</td><td>1024</td><td>Waiting</td></tr>
+<tr><td>2048</td><td>Incr Delay</td><td>2048</td><td><i>not published</i></td><td>2048</td><td>Temp Backoff</td></tr>
+<tr><td>4096</td><td>RPM Control</td><td>4096</td><td><b>"Grid Standby / No Export"</b> <i>— unofficial name, see note below</i></td><td>4096</td><td>Bad Setpoints</td></tr>
+<tr><td>8192</td><td>Vin High</td><td>8192</td><td><i>not published</i></td><td>8192</td><td>Bad CRC</td></tr>
+</table>
+
+<blockquote>
+<b>Documentation gap (honest disclosure):</b> The source Zenodo documentation defines Grid status bits only up to 1024 (Anti-Islanding). Our August subset contains 1,542 records with <code>Grid status = 4096</code> and 1 record with <code>Grid status = 5120</code> (= 4096 + 1024). Bit 4096 is <b>not defined anywhere</b> in the published reference sheet.
+<br><br>
+Rather than leave it unusable, we investigated it against the rest of the telemetry in our own data and are assigning it the working name <b>"Grid Standby / No Export"</b> — <u>this name is our own inference, not an official manufacturer term</u>. The basis for it:
+<ul>
+  <li>99.3% of all rows with this bit set occur while <code>Turbine status</code> already indicates Low Windspeed and/or Braking (codes 1, 3, 33, 35) — i.e. the turbine is already idle, not actively generating</li>
+  <li><code>Voltage L1</code> and <code>Voltage L2</code> during these rows (avg 131.3 V / 132.5 V) are statistically indistinguishable from normal-operation rows (avg 131.1 V / 132.3 V) — no voltage anomaly is present</li>
+  <li><code>Power out</code> is 0 W in effectively all of these rows</li>
+</ul>
+No fault signature (voltage excursion, frequency deviation, etc.) accompanies this bit — it behaves like an informational "not exporting power" flag tied to the turbine's own idle state, not a grid malfunction. We therefore treat it as a separate, low-severity <i>informational</i> category in our fault classifier, rather than lumping it in with genuine grid faults (which would inflate downtime/fault statistics with a condition that isn't actually a malfunction).
+</blockquote>
+
+<h3>Combinations actually found in this dataset (decoded)</h3>
+
+<table>
+<tr><th>Column</th><th>Value</th><th>Rows</th><th>Decoded meaning</th></tr>
+<tr><td rowspan="10">Turbine status</td><td>0</td><td>11,607</td><td>Normal Run / Power Generation</td></tr>
+<tr><td>1</td><td>20,058</td><td>Low Windspeed</td></tr>
+<tr><td>3</td><td>400</td><td>Braking + Low Windspeed</td></tr>
+<tr><td>8</td><td>3,765</td><td>No Stall</td></tr>
+<tr><td>9</td><td>2</td><td>No Stall + Low Windspeed</td></tr>
+<tr><td>32</td><td>1</td><td>Anemometer mode</td></tr>
+<tr><td>33</td><td>31</td><td>Anemometer mode + Low Windspeed</td></tr>
+<tr><td>35</td><td>20</td><td>Anemometer mode + Braking + Low Windspeed</td></tr>
+<tr><td>288</td><td>1</td><td>Power High + Anemometer mode</td></tr>
+<tr><td>289</td><td>18</td><td>Power High + Anemometer mode + Low Windspeed</td></tr>
+<tr><td rowspan="3">Grid status</td><td>0</td><td>34,360</td><td>Normal (no faults)</td></tr>
+<tr><td>4096</td><td>1,542</td><td>"Grid Standby / No Export" <i>(unofficial, inferred — see note above)</i></td></tr>
+<tr><td>5120</td><td>1</td><td>Anti-Islanding + "Grid Standby / No Export" (unofficial)</td></tr>
+<tr><td rowspan="6">System status</td><td>0</td><td>19,292</td><td>Normal (no errors)</td></tr>
+<tr><td>8</td><td>891</td><td>Battery Timeout</td></tr>
+<tr><td>256</td><td>15,226</td><td>Run (Normal Operation)</td></tr>
+<tr><td>264</td><td>74</td><td>Run (Normal Operation) + Battery Timeout</td></tr>
+<tr><td>1024</td><td>260</td><td>Waiting</td></tr>
+<tr><td>1032</td><td>160</td><td>Waiting + Battery Timeout</td></tr>
 </table>
 
 <p>
-  <i>Full bit reference published with the source dataset at <a href="https://doi.org/10.5281/zenodo.7348454">Zenodo (DOI 10.5281/zenodo.7348454)</a>; codes actually observed in this August subset are documented in the schema table above.</i>
+  <i>Full bit reference published with the source dataset at <a href="https://doi.org/10.5281/zenodo.7348454">Zenodo (DOI 10.5281/zenodo.7348454)</a>.</i>
 </p>
 
 <hr>
@@ -266,7 +242,7 @@
 <h2>Data Structures Used</h2>
 <ul>
   <li><b>Arrays</b> — store loaded readings for indexed access, sorting, searching, and global physical checks</li>
-  <li><b>Linked Lists</b> — model continuous segments and fault event chains; a new node is appended whenever a fault status (e.g. Grid status L1 Low Voltage, Turbine status Low Windspeed) is detected, so fault history can be traversed independently of the main telemetry array</li>
+  <li><b>Linked Lists</b> — model continuous segments and fault event chains, organized as an <b>array of linked-list heads</b> (one list per category: Low Windspeed, Grid Fault, Battery/System, and Grid Standby/Informational) so each category can be queried, sorted by duration, and traversed independently of the main telemetry array and of each other — the informational "Grid Standby" bucket is kept separate from real Grid Faults so it doesn't distort downtime/fault statistics</li>
 </ul>
 
 <hr>
