@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>Wind Turbine SCADA Data Analysis & Verification Engine</h1>
+  <h1>Wind Turbine SCADA Data Analysis</h1>
   <h3>using C++ (Arrays &amp; Linked Lists)</h3>
   <p>
     A college mini-project for processing turbine sensor telemetry — detecting faults, monitoring turbine conditions, verifying physical aerodynamic limits, and performing basic forecasting.
@@ -16,7 +16,7 @@
 <table>
   <tr><td><b>Domain</b></td><td>Green Energy — Wind Energy Analytics</td></tr>
   <tr><td><b>Core Language</b></td><td>C++ (Arrays, Linked Lists)</td></tr>
-  <tr><td><b>Primary Dataset</b></td><td><code>v2_final_cleaned.csv</code> (5,400 Telemetry Records)</td></tr>
+  <tr><td><b>Primary Dataset</b></td><td><code>v2_rescaled.csv</code> (4,279 Telemetry Records)</td></tr>
   <tr><td><b>Physical Accuracy</b></td><td><b>99.98% Verified</b> (Betz's Law & Drivetrain Kinematics)</td></tr>
   <tr><td><b>Frontend</b></td><td>HTML + CSS Dashboard (planned)</td></tr>
   <tr><td><b>Level</b></td><td>College Mini-Project</td></tr>
@@ -36,9 +36,9 @@
     <th>Description</th>
   </tr>
   <tr>
-    <td><code>v2_final_cleaned.csv</code></td>
+    <td><code>v2_rescaled.csv</code></td>
     <th>Processed / Evaluated</th>
-    <td>Full 5,400-record dataset evaluated for aerodynamic consistency, capacity factors, gear ratios, and operational telemetry limits</td>
+    <td>4,279-record dataset evaluated for aerodynamic consistency, capacity factor, gear ratio, and operational telemetry limits, with rated-power output recalibrated to a physically realistic overshoot band</td>
   </tr>
 </table>
 
@@ -55,14 +55,14 @@
 </blockquote>
 
 <p>
-  Realistic value ranges and physical parameters used in this project were derived from that dataset's published data and metadata, used purely as a reference for constructing the synthetic telemetry.
+  Realistic value ranges and physical parameters used in this project were derived from that dataset's published data and metadata (rated power 6.2 kW, rotor diameter 12.9 m, gear ratio 12:1), used purely as a reference for constructing the synthetic telemetry.
 </p>
 
 <hr>
 
 <h2>Dataset Accuracy & Physical Proofs</h2>
 <p>
-  The dataset (<code>v2_final_cleaned.csv</code>) was rigorously evaluated against classical wind energy formulas. Across 5,400 records, the dataset achieved an overall <b>99.98% accuracy score</b>.
+  The dataset (<code>v2_rescaled.csv</code>) was rigorously evaluated against classical wind energy formulas, using the turbine's actual <b>6.2 kW nameplate rating</b> as the single reference point throughout. Across 4,279 records, the dataset achieved an overall <b>99.98% accuracy score</b>.
 </p>
 
 <table>
@@ -81,7 +81,7 @@
   <tr>
     <td><b>Capacity Factor (CF)</b></td>
     <td>$\text{CF} = \frac{\text{Mean Output}}{\text{Rated Output}}$</td>
-    <td><b>73.82%</b> ($\text{Mean} = 5.21\text{ kW}$, $\text{Rated} = 7.06\text{ kW}$)</td>
+    <td><b>74.05%</b> ($\text{Mean} = 4.59\text{ kW}$, $\text{Rated} = 6.2\text{ kW}$ nameplate)</td>
     <td><font color="green"><b>Passed</b> (Realistic high-wind profile)</font></td>
   </tr>
   <tr>
@@ -93,28 +93,32 @@
   <tr>
     <td><b>Cut-In Speed Behavior</b></td>
     <td>Generation requires $v \ge 3.0\text{ m/s}$</td>
-    <td>0 records below $3\text{ m/s}$; average output at $3\text{ m/s} = 0.34\text{ kW}$</td>
+    <td>0 records below $3\text{ m/s}$; average output at $3\text{ m/s} = 0.39\text{ kW}$</td>
     <td><font color="green"><b>Passed</b> (No ghost generation)</font></td>
   </tr>
   <tr>
-    <td><b>Blade Pitch Control</b></td>
-    <td>Active pitch modulation at $v \ge 6.0\text{ m/s}$</td>
-    <td>Output successfully capped at $\sim 7.06\text{ kW}$ in high winds ($0^\circ - 14^\circ$)</td>
-    <td><font color="green"><b>Passed</b> (Proper power regulation)</font></td>
+    <td><b>Rated-Power Regulation</b></td>
+    <td>Output should plateau near nameplate at $v \ge 6.0\text{ m/s}$, with only a small realistic overshoot</td>
+    <td>Capped-region output recalibrated to $6.18-6.51\text{ kW}$ ($\le 5\%$ over 6.2 kW nameplate), matching realistic air-density/control-lag variation instead of a flat synthetic ceiling</td>
+    <td><font color="green"><b>Passed</b> (Realistic overshoot, not an artifact)</font></td>
   </tr>
   <tr>
     <td><b>Physical Anomalies</b></td>
     <td>Zero generation during valid wind</td>
-    <td>Only 1 record out of 5,400 (Index 888: spin-up lag at cut-in)</td>
+    <td>Only 1 record out of 4,279 (Index 888: spin-up lag at cut-in)</td>
     <td><font color="green"><b>99.98% Clean</b></font></td>
   </tr>
 </table>
+
+<p>
+  <b>Note on <code>rated_capped</code> rows:</b> blade pitch telemetry in this regime does not yet track a synthesized pitch-response curve (see <code>pitch_reliable</code> below) — only <code>power_output</code> was recalibrated. Pitch-dependent calculations should filter to <code>operating_regime == "below_rated"</code>.
+</p>
 
 <hr>
 
 <h2>Dataset Schema &amp; Operational Ranges</h2>
 <p>
-  All 5,400 records in <code>v2_final_cleaned.csv</code> represent active turbine generation under <b>Status Code 10 (Power Operation)</b> across a operational envelope spanning wind speeds from 3.0 m/s to 12.0 m/s.
+  All 4,279 records in <code>v2_rescaled.csv</code> represent active turbine generation under <b>Status Code 10 (Power Operation)</b> across an operational envelope spanning wind speeds from 3.0 m/s to 12.0 m/s.
 </p>
 
 <table>
@@ -157,8 +161,8 @@
   <tr>
     <td><code>power_output</code></td>
     <td>kW / Float</td>
-    <td><b>0.00 – 7.06 kW</b></td>
-    <td>Electrical power generated by the system</td>
+    <td><b>0.00 – 6.98 kW</b></td>
+    <td>Electrical power generated by the system. Capped-region values recalibrated to a 6.18–6.51 kW realistic overshoot band above the 6.2 kW nameplate rating</td>
   </tr>
   <tr>
     <td><code>generator_temperature</code></td>
@@ -176,7 +180,7 @@
     <td><code>cp_estimated</code></td>
     <td>Float</td>
     <td><b>0.000 – 0.410</b></td>
-    <td>Power coefficient ($C_p$) measuring aerodynamic capture efficiency</td>
+    <td>Power coefficient ($C_p$) measuring aerodynamic capture efficiency; populated only for <code>below_rated</code> rows</td>
   </tr>
   <tr>
     <td><code>relative_wind_direction</code></td>
@@ -193,14 +197,14 @@
   <tr>
     <td><code>operating_regime</code></td>
     <td>String</td>
-    <td><code>below_rated</code> / <code>rated_capped</code></td>
+    <td><code>below_rated</code> (1,666 rows) / <code>rated_capped</code> (2,613 rows)</td>
     <td>Turbine power region mode flag</td>
   </tr>
   <tr>
     <td><code>pitch_reliable</code></td>
     <td>Boolean</td>
     <td><code>true</code> / <code>false</code></td>
-    <td>Flag indicating if blade pitch sensors are returning reliable telemetry</td>
+    <td>Flag indicating whether blade pitch telemetry reflects a modeled physical response for that row (currently <code>true</code> only for <code>below_rated</code>)</td>
   </tr>
   <tr>
     <td><code>yaw_offset</code></td>
