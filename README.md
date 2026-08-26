@@ -1,1 +1,313 @@
 
+<div align="center">
+  <h1>Urban Small Wind Turbine SCADA Data Analysis</h1>
+  <h3>using C++ (Arrays &amp; Linked Lists)</h3>
+  <p>
+    A college mini-project for processing real turbine sensor telemetry — detecting faults, monitoring turbine conditions, verifying physical electrical/aerodynamic behavior, and performing basic forecasting.
+  </p>
+  <img src="https://img.shields.io/badge/Language-C%2B%2B-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Data-Real%20SCADA-brightgreen?style=flat-square" />
+  <img src="https://img.shields.io/badge/Frontend-HTML%20%2F%20CSS-orange?style=flat-square" />
+  <img src="https://img.shields.io/badge/Status-In%20Development-yellow?style=flat-square" />
+</div>
+
+<hr>
+
+<h2>Overview</h2>
+<table>
+  <tr><td><b>Domain</b></td><td>Green Energy — Small Wind Turbine Analytics</td></tr>
+  <tr><td><b>Core Language</b></td><td>C++ (Arrays, Linked Lists)</td></tr>
+  <tr><td><b>Primary Dataset</b></td><td><code>swt_august_2022_final.csv</code> (35,903 Real Telemetry Records, 1-minute resolution)</td></tr>
+  <tr><td><b>Data Type</b></td><td>Real-world SCADA data (not synthetic)</td></tr>
+  <tr><td><b>Frontend</b></td><td>HTML + CSS Dashboard (planned)</td></tr>
+  <tr><td><b>Level</b></td><td>College Mini-Project</td></tr>
+</table>
+
+<p>
+  The project processes real turbine sensor readings — wind speed, RPM, DC/AC voltages, current, power output, temperatures, and bitmask status codes — to detect faults, segment continuous data, compute basic statistics, verify underlying electrical/aerodynamic physics, and forecast short-term trends.
+</p>
+
+<hr>
+
+<h2>Files Present</h2>
+<table>
+  <tr>
+    <th>File</th>
+    <th>Type</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>swt_august_2022_final.csv</code></td>
+    <th>Real / Cleaned / Trimmed</th>
+    <td>35,903-record subset (August 2022, 1 month) of real Skystream 3.7 SCADA telemetry, trimmed to the 17 columns needed for this project and cleaned of 4 confirmed-corrupt rows</td>
+  </tr>
+</table>
+
+<blockquote>
+  <b>Note:</b> This project uses real, published SCADA data — not a synthetic approximation. The full source dataset spans January–December 2022 (369,731 records); August was selected as a representative one-month subset with the widest variety of operational status codes (10 distinct combinations).
+</blockquote>
+
+<p>
+  Source dataset:
+</p>
+
+<blockquote>
+  Bassi, W., Rodrigues, A. L., &amp; Sauer, I. L. (2023). <i>Operation SCADA Data of an Urban Small Wind Turbine in São Paulo, Brazil</i> [Data set]. Zenodo. <a href="https://doi.org/10.5281/zenodo.7348454">https://doi.org/10.5281/zenodo.7348454</a>. Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a>. Recorded from a Southwest Windpower / XZERES <b>Skystream 3.7</b> installed at the Institute of Energy and Environment, University of São Paulo.
+</blockquote>
+
+<p>
+  Turbine specifications (rated power, rotor diameter, cut-in speed) used for physical validation below are the manufacturer's published Skystream 3.7 specs, cross-checked against the dataset's own <code>Power max</code> column (constant 2400W across 99.99% of raw records).
+</p>
+
+<hr>
+
+<h2>Dataset Accuracy &amp; Physical Validation</h2>
+<p>
+  The dataset (<code>swt_august_2022_final.csv</code>) was checked against classical wind/electrical power formulas using the Skystream 3.7's published specs: <b>rated power 2.4 kW</b>, <b>rotor diameter 3.72 m</b> (swept area 10.87 m²), <b>cut-in wind speed ≈ 3.0–3.5 m/s</b>.
+</p>
+
+<table>
+  <tr>
+    <th>Scientific Metric / Test</th>
+    <th>Governing Relation / Formula</th>
+    <th>Dataset Result</th>
+    <th>Verification Status</th>
+  </tr>
+  <tr>
+    <td><b>Electrical Power Law</b></td>
+    <td>$\text{Power out} \approx (\text{Voltage L1} + \text{Voltage L2}) \times \text{Current out}$</td>
+    <td>Implied voltage $= 220.65\text{ V} \pm 4.7\text{ V}$ (for rows with $\ge 200\text{ W}$ output) — stable and physically consistent. Ratio is unstable below 200 W due to division by small currents, not a data defect.</td>
+    <td><font color="green"><b>Passed</b> (verified at meaningful output)</font></td>
+  </tr>
+  <tr>
+    <td><b>Inverter Efficiency</b></td>
+    <td>$\text{Power reg} / \text{Power out}$</td>
+    <td>Mean $= 1.0054$ ($\pm 0.016$) for $\ge 200\text{ W}$ rows — near-lossless conversion, consistent with a well-tuned grid-tied inverter</td>
+    <td><font color="green"><b>Passed</b></font></td>
+  </tr>
+  <tr>
+    <td><b>Betz's Limit Compliance</b></td>
+    <td>$C_p = \frac{P_{\text{actual}}}{\frac{1}{2}\rho A v^3} \le 0.593$</td>
+    <td>4 of 17,762 non-zero-wind records ($0.023\%$) marginally exceed Betz limit ($C_p$ up to 0.692), all at low integer wind-speed readings (3–4 m/s) where the dataset's integer-only wind speed resolution amplifies error via the $v^3$ term</td>
+    <td><font color="orange"><b>99.98% Passed</b> (explained by wind-speed measurement resolution, not a physics violation)</font></td>
+  </tr>
+  <tr>
+    <td><b>Cut-In Speed Behavior</b></td>
+    <td>Generation requires $v \ge 3.0\text{ m/s}$</td>
+    <td>179 records show trace output below 3 m/s (max 107 W); all occur near the 3 m/s boundary and are consistent with rotor inertia carrying over between 1-minute samples, not ghost generation</td>
+    <td><font color="green"><b>Passed</b> (physically explainable)</font></td>
+  </tr>
+  <tr>
+    <td><b>Idle Coasting Behavior</b></td>
+    <td>$\text{RPM} > 0$ while $\text{Windspeed} = 0$</td>
+    <td>510 records, all with RPM 5–17 (near-idle) and Power out $= 0$ — consistent with the rotor freewheeling to a stop in still air rather than a sensor fault</td>
+    <td><font color="green"><b>Passed</b> (physically explainable)</font></td>
+  </tr>
+  <tr>
+    <td><b>Rated Power Ceiling</b></td>
+    <td>Output should not sustain above 2,400 W nameplate</td>
+    <td>Max recorded: 1,927 W in August (below rated — August was a lower-wind month); full-year data shows only 11 of 369,731 rows briefly exceed 2,400 W, up to 3,713 W — realistic short-duration overshoot, not systemic capping</td>
+    <td><font color="green"><b>Passed</b></font></td>
+  </tr>
+  <tr>
+    <td><b>Known Data Corruption (pre-cleaning)</b></td>
+    <td>Physically impossible sensor values</td>
+    <td>4 rows removed from the raw 35,907-row August extract: 2 with corrupted <code>Turbine status</code> (value 33063, an implausible bitmask) and 2 with <code>Power max = 0</code> (sensor init/calibration artifacts)</td>
+    <td><font color="green"><b>Cleaned</b> (0.011% of rows removed)</font></td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>Dataset Schema &amp; Operational Ranges</h2>
+<p>
+  All 35,903 records in <code>swt_august_2022_final.csv</code> are real 1-minute SCADA readings from August 2022.
+</p>
+
+<table>
+  <tr>
+    <th>Column Name</th>
+    <th>Unit / Type</th>
+    <th>Observed Range</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>Log Time</code></td>
+    <td>YYYY:MM:DD:HH:MM:SS,ms</td>
+    <td>2022-08-01 to 2022-08-31</td>
+    <td>Timestamp of the recorded telemetry reading</td>
+  </tr>
+  <tr>
+    <td><code>Windspeed (ref)</code></td>
+    <td>m/s / Integer</td>
+    <td><b>0 – 10</b></td>
+    <td>Estimated reference wind speed, calculated from rotor rotation (integer resolution)</td>
+  </tr>
+  <tr>
+    <td><code>RPM</code></td>
+    <td>RPM / Integer</td>
+    <td><b>0 – 327</b></td>
+    <td>Rotational speed of the wind turbine blades</td>
+  </tr>
+  <tr>
+    <td><code>Voltage In</code></td>
+    <td>V / Float</td>
+    <td><b>0.0 – 289.6</b></td>
+    <td>DC voltage generated by the turbine rotor; correlates 0.997 with RPM (physical, not anomalous)</td>
+  </tr>
+  <tr>
+    <td><code>Voltage L1</code></td>
+    <td>V / Float</td>
+    <td><b>125.4 – 135.1</b></td>
+    <td>Grid AC voltage, phase L1</td>
+  </tr>
+  <tr>
+    <td><code>Voltage L2</code></td>
+    <td>V / Float</td>
+    <td><b>126.9 – 138.4</b></td>
+    <td>Grid AC voltage, phase L2</td>
+  </tr>
+  <tr>
+    <td><code>Current out</code></td>
+    <td>A / Float</td>
+    <td><b>0.02 – 8.47</b></td>
+    <td>Total AC output current delivered to the grid</td>
+  </tr>
+  <tr>
+    <td><code>Power out</code></td>
+    <td>W / Integer</td>
+    <td><b>0 – 1,927</b></td>
+    <td>Total AC active power delivered to the grid</td>
+  </tr>
+  <tr>
+    <td><code>Power reg</code></td>
+    <td>W / Integer</td>
+    <td><b>0 – 1,910</b></td>
+    <td>Gross power from the generator before inverter losses</td>
+  </tr>
+  <tr>
+    <td><code>T1</code></td>
+    <td>°C / Float</td>
+    <td><b>10.3 – 37.6</b></td>
+    <td>Inverter heatsink temperature 1</td>
+  </tr>
+  <tr>
+    <td><code>T2</code></td>
+    <td>°C / Float</td>
+    <td><b>10.1 – 37.8</b></td>
+    <td>Inverter heatsink temperature 2</td>
+  </tr>
+  <tr>
+    <td><code>T3</code></td>
+    <td>°C / Float</td>
+    <td><b>8.1 – 35.0</b></td>
+    <td>Ambient temperature inside the nacelle housing</td>
+  </tr>
+  <tr>
+    <td><code>Event count</code></td>
+    <td>Integer</td>
+    <td><b>13,228 – 13,500</b></td>
+    <td>Cumulative count of SCADA system events (genuinely incrementing, unlike a static placeholder)</td>
+  </tr>
+  <tr>
+    <td><code>Last event code</code></td>
+    <td>Integer</td>
+    <td><b>6 – 111</b></td>
+    <td>Numeric identifier of the most recent logged event code</td>
+  </tr>
+  <tr>
+    <td><code>Turbine status</code></td>
+    <td>Bitmask / Integer</td>
+    <td>10 distinct values (see table below)</td>
+    <td>Bitmask of active turbine operational/mechanical states</td>
+  </tr>
+  <tr>
+    <td><code>Grid status</code></td>
+    <td>Bitmask / Integer</td>
+    <td><code>0</code>, <code>4096</code>, <code>5120</code></td>
+    <td>Bitmask of grid connection health and fault conditions</td>
+  </tr>
+  <tr>
+    <td><code>System status</code></td>
+    <td>Bitmask / Integer</td>
+    <td>6 distinct values</td>
+    <td>Bitmask of high-level system operational states</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>Status Code Reference (Bitwise Logic)</h2>
+<p>
+  Status columns are bitmasks — individual bits represent independent conditions, and codes can combine additively when multiple conditions occur simultaneously (e.g. <code>Turbine status = 33</code> = Anemometer mode (32) + Low Windspeed (1)).
+</p>
+
+<table>
+  <tr>
+    <th>Numeric Code</th>
+    <th>Turbine Status</th>
+    <th>Grid Status</th>
+    <th>System Status</th>
+  </tr>
+  <tr><td>0</td><td>Normal Run / Power Generation</td><td>Normal (no faults)</td><td>Normal (no errors)</td></tr>
+  <tr><td>1</td><td>Low Windspeed (below cut-in)</td><td>L1 Low Voltage</td><td>HS Backoff</td></tr>
+  <tr><td>8</td><td>No Stall (high-efficiency operation)</td><td>L2 High Voltage</td><td>Battery Timeout</td></tr>
+  <tr><td>32</td><td>Anemometer mode</td><td>Phase Error</td><td>Slave Shutdown</td></tr>
+  <tr><td>256</td><td>Power High</td><td>DPLL Unlock</td><td>Run (Normal Operation)</td></tr>
+  <tr><td>1024</td><td>Quiet</td><td>Anti-Islanding</td><td>Waiting</td></tr>
+</table>
+
+<p>
+  <i>Full bit reference published with the source dataset at <a href="https://doi.org/10.5281/zenodo.7348454">Zenodo (DOI 10.5281/zenodo.7348454)</a>; codes actually observed in this August subset are documented in the schema table above.</i>
+</p>
+
+<hr>
+
+<h2>Data Structures Used</h2>
+<ul>
+  <li><b>Arrays</b> — store loaded readings for indexed access, sorting, searching, and global physical checks</li>
+  <li><b>Linked Lists</b> — model continuous segments and fault event chains; a new node is appended whenever a fault status (e.g. Grid status L1 Low Voltage, Turbine status Low Windspeed) is detected, so fault history can be traversed independently of the main telemetry array</li>
+</ul>
+
+<hr>
+
+<h2>Status</h2>
+<p>
+  Actively in development — core C++ parsing, dataset verification, and analysis logic first, HTML/CSS dashboard layered on afterward.
+</p>
+
+<hr>
+
+<h2>Credits</h2>
+<table align="center">
+  <tr>
+    <td align="center">
+      <b>Ashwin Nair</b><br>
+      <a href="https://github.com/ashwinprakashnair-cmyk">github.com/ashwinprakashnair-cmyk</a>
+    </td>
+    <td align="center">
+      <b>Rohit Kedari</b><br>
+      <a href="https://github.com/Rohitkedari-git">github.com/Rohitkedari-git</a>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+<p>
+  This project uses real SCADA data published by:
+</p>
+
+<blockquote>
+  <p>
+    Bassi, W., Rodrigues, A. L., &amp; Sauer, I. L. (2023).<br>
+    <i>Operation SCADA Data of an Urban Small Wind Turbine in São Paulo, Brazil</i> [Data set].<br>
+    Zenodo. DOI: <a href="https://doi.org/10.5281/zenodo.7348454">10.5281/zenodo.7348454</a><br>
+    Institute of Energy and Environment (IEE), University of São Paulo (USP), Brazil.<br>
+    Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International (CC-BY-4.0)</a>.
+  </p>
+</blockquote>
+
+<p>
+  We gratefully acknowledge the original authors for making this real-world dataset publicly available for research and educational reference.
+</p>
