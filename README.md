@@ -93,7 +93,7 @@
   <tr>
     <td><b>Cut-In Speed Behavior</b></td>
     <td>Generation requires v ≥ 3.0 m/s</td>
-    <td>179 records show trace output below 3 m/s (max 107 W); all occur near the 3 m/s boundary and are consistent with rotor inertia carrying over between 1-minute samples, not ghost generation</td>
+    <td>179 records show trace output below 3 m/s (max 16 W); all occur near the 3 m/s boundary and are consistent with rotor inertia carrying over between 1-minute samples.</td>
     <td><font color="green"><b>Passed</b> (physically explainable)</font></td>
   </tr>
   <tr>
