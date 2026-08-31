@@ -292,7 +292,7 @@ No fault signature (voltage excursion, frequency deviation, etc.) accompanies th
 
 <hr>
 
-<h2>Flood Detection &amp; Alarm Clustering</h2>
+<h2>Flood Detection &amp; Alarm Clustering (planned)</h2>
 <p>
   Individual fault readings are grouped into clusters when they recur close together in time for the <i>same</i> rule, rather than being reported as independent events. This is the primary analytical objective of the project, distinguishing it from a basic threshold-checking script.
 </p>
