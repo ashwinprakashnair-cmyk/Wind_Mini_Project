@@ -19,6 +19,22 @@ bool hasBit(int status, int bit) {
     return (status & bit) != 0;
 }
 
+bool isValid(TurbineRecord rec) {
+    if (rec.windspeed < 0 || rec.windspeed > 25) {
+        return false;
+    }
+    if (rec.rpm < 0) {
+        return false;
+    }
+    if (rec.powerOut < 0) {
+        return false;
+    }
+    if (rec.t1 < -10 || rec.t1 > 60) {
+        return false;
+    }
+    return true;
+}
+
 int main() {
     ifstream file("swt_august_2022_final.csv");
 
@@ -50,7 +66,9 @@ int main() {
         rec.turbineStatus = stoi(row[14]);
         rec.gridStatus = stoi(row[15]);
 
-        records.push_back(rec);
+        if (isValid(rec)) {
+            records.push_back(rec);
+        }
     }
 
     file.close();
