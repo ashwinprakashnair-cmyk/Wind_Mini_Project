@@ -1,3 +1,4 @@
+git status
 #include <iostream>
 #include <fstream>
 #include <sstream>
