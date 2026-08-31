@@ -247,6 +247,87 @@ No fault signature (voltage excursion, frequency deviation, etc.) accompanies th
 
 <hr>
 
+<h2>Fault Detection Rules &amp; Threshold Derivation</h2>
+<p>
+  Each detection rule's threshold was derived empirically by testing candidate values against the actual dataset, rather than assumed — following the same evidence-based approach used in the Physical Validation section above. The goal for each threshold was a sensitivity that flags genuine anomalies without excessive false positives. A naive first attempt at Rule 2, for example, used a fixed T1 temperature cutoff and initially flagged 2,217 rows — an unusable false-positive rate driven by ordinary ambient heat rather than real faults — before being corrected to a T1-vs-ambient delta comparison.
+</p>
+
+<table>
+  <tr>
+    <th>Rule</th>
+    <th>Condition</th>
+    <th>Threshold</th>
+    <th>Candidates Flagged</th>
+    <th>Rationale</th>
+  </tr>
+  <tr>
+    <td><b>1. Wind-Power Mismatch</b></td>
+    <td>Windspeed ≥ 4 m/s, Power out &lt; 50W, turbine not already in an idle/braking state</td>
+    <td>Fixed</td>
+    <td>41</td>
+    <td>Flags cases where meaningful wind is present but the turbine isn't generating expected power, while excluding rows already explained by a Low-Windspeed or Braking <code>Turbine status</code> (avoiding false positives from legitimately idle conditions)</td>
+  </tr>
+  <tr>
+    <td><b>2. Temp-Without-Load</b></td>
+    <td>Power out &lt; 10W, (T1 − T3) delta</td>
+    <td>&gt; 5°C</td>
+    <td>28</td>
+    <td>Uses T1 (inverter heatsink) minus T3 (nacelle ambient) instead of an absolute T1 threshold, so the check isolates inverter-specific heating from ordinary outdoor/seasonal temperature. Normal delta across the dataset averages 2.1–2.7°C with a max of ~7.1°C, so &gt;5°C indicates a genuine deviation</td>
+  </tr>
+  <tr>
+    <td><b>3. Tip-Speed Ratio Anomaly</b></td>
+    <td>Windspeed ≥ 3 m/s, RPM ÷ Windspeed ratio outside band</td>
+    <td>20 – 55</td>
+    <td>9</td>
+    <td>Substitutes for a literal gear-ratio check (the dataset has only one RPM sensor, not separate rotor/generator shaft speeds). The ratio is stable across wind speeds once windspeed ≥ 3 m/s (mean ≈ 36.4, std ≈ 4.6); below 3 m/s the ratio is naturally noisy due to low-speed measurement resolution and is excluded from this check</td>
+  </tr>
+  <tr>
+    <td><b>4. Rapid Change Detection</b></td>
+    <td>Absolute change in Power out between consecutive 1-minute readings</td>
+    <td>&gt; 500W</td>
+    <td>638</td>
+    <td>Deliberately kept sensitive. The higher candidate count relative to the other rules is expected and by design — it is intended to be consumed by the Flood Detection system below, which groups closely-timed repeated triggers (e.g. sustained gusty wind causing many consecutive swings) into a single event rather than treating each 1-minute reading as an independent fault</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>Flood Detection &amp; Alarm Clustering</h2>
+<p>
+  Individual fault readings are grouped into clusters when they recur close together in time for the <i>same</i> rule, rather than being reported as independent events. This is the primary analytical objective of the project, distinguishing it from a basic threshold-checking script.
+</p>
+<p>
+  The design follows principles from the <b>ANSI/ISA-18.2</b> industrial alarm management standard (the real standard used in process control rooms, adopted by OSHA as good engineering practice), specifically:
+</p>
+<ul>
+  <li><b>Alarm flood definition</b> — ISA-18.2 defines a flood as more than 10 alarms within a 10-minute window; this project uses the same time-window concept to decide whether consecutive same-rule triggers belong to one ongoing cluster or are separate events</li>
+  <li><b>State-based alarm suppression</b> — ISA-18.2 recommends suppressing alarms already explained by a known operating condition (e.g. not alarming on low flow caused by an already-tripped pump). This project already implements an instance of this principle via the "Grid Standby / No Export" informational category described above, which is deliberately excluded from real Grid Fault statistics</li>
+  <li><b>Alarm priority tiers</b> — ISA-18.2 recommends no more than three or four alarm priorities, with high-priority alarms kept to a small minority. This project uses a three-tier severity scheme (Info / Warning / Critical)</li>
+</ul>
+<p>
+  Each cluster records: the timestamp of its first (anchor) event, the timestamp of its most recent event, the total number of readings grouped into it, and the peak severity observed within the cluster. This gives a reader a single, actionable entry to review — e.g. <i>"Rapid Change cluster, 12 readings, 2022:08:14 14:20–14:35, peak severity CRITICAL"</i> — instead of 12 near-duplicate log lines for what is most likely one continuous physical event (such as a gust).
+</p>
+
+<hr>
+
+<h2>Scope &amp; Limitations (Honest Disclosure)</h2>
+<p>
+  This project intentionally does <b>not</b> attempt statistical or machine-learning-based fault prediction, anomaly scoring, or automated root-cause inference. These are legitimate and widely-used approaches in real SCADA condition-monitoring research (e.g. neural-network and regression-based normal-behavior modeling), but they require labeled historical fault data, model training/validation, and a level of statistical rigor outside the scope of a C++ data-structures mini-project.
+</p>
+<p>
+  Specifically:
+</p>
+<ul>
+  <li>The Flood Detection system groups <b>repeated occurrences of the same rule</b> within a short time window, on the reasonable physical assumption that these usually reflect one ongoing condition (e.g. sustained gusty wind) rather than many independent faults. It does <b>not</b> claim to identify a definitive root cause.</li>
+  <li>The system does <b>not</b> infer causal relationships between different fault types — e.g. it will not claim that a Wind-Power Mismatch event caused a later Rapid Change event, even if they occur close together in time. Any such correlation is, at most, noted as "co-occurring," never as causal.</li>
+  <li>The Forecasting feature (described separately) is a naive short-term linear trend projection over the most recent readings only. It does not account for weather forecasts, seasonal patterns, or any external factors, and is not intended to be a reliable prediction of future turbine behavior — it exists only to flag developing trends worth a closer look.</li>
+</ul>
+<p>
+  This scope was chosen deliberately: every feature in this project is one the authors can fully explain and defend line-by-line, rather than reaching for techniques (e.g. ML-based anomaly detection) that would be difficult to justify or validate within this project's timeline and academic level.
+</p>
+
+<hr>
+
 <h2>Status</h2>
 <p>
   Actively in development — core C++ parsing, dataset verification, and analysis logic first, HTML/CSS dashboard layered on afterward.
