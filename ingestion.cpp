@@ -36,6 +36,16 @@ bool isValid(TurbineRecord rec) {
     return true;
 }
 
+bool checkWindPowerMismatch(TurbineRecord rec) {
+    bool alreadyIdle = (rec.turbineStatus == 1 || rec.turbineStatus == 3 ||
+                         rec.turbineStatus == 33 || rec.turbineStatus == 35);
+
+    if (rec.windspeed >= 4 && rec.powerOut < 50 && !alreadyIdle) {
+        return true; // fault detected
+    }
+    return false;
+}
+
 int main() {
     ifstream file("swt_august_2022_final.csv");
 
