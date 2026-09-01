@@ -11,6 +11,7 @@ struct TurbineRecord {
     double rpm;
     double powerOut;
     double t1;
+    double t3;
     int turbineStatus;
     int gridStatus;
 };
@@ -63,6 +64,7 @@ int main() {
         rec.rpm = stod(row[2]);
         rec.powerOut = stod(row[7]);
         rec.t1 = stod(row[9]);
+        rec.t3 = stod(row[11]);
         rec.turbineStatus = stoi(row[14]);
         rec.gridStatus = stoi(row[15]);
 
